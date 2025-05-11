@@ -17,7 +17,7 @@
   requests
   providing more results.
 
-With Maven you can start the app like
+If you want to pass a token you can start the app with Maven like
 
 ```bash
 mvn spring-boot:run -Dspring-boot.run.arguments="--github.access-token=your_github_token_here"

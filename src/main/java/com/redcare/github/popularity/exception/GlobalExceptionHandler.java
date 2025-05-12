@@ -1,11 +1,11 @@
 package com.redcare.github.popularity.exception;
 
 import com.redcare.github.popularity.exception.client.GithubApiException;
+import org.springframework.beans.BeanInstantiationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.format.DateTimeParseException;
 
@@ -23,24 +23,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, ex.getStatus());
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+    @ExceptionHandler(BeanInstantiationException.class)
+    public ResponseEntity<ErrorResponse> handleBeanInstantiationException(BeanInstantiationException ex) {
         var errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
-                "Language parameter must be a valid programming language or left blank",
-                ex.getMessage(),
-                ex.toString()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(DateTimeParseException.class)
-    public ResponseEntity<ErrorResponse> handleDateTimeParseException(DateTimeParseException ex) {
-        var errorResponse = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "earliestCreatedAt parameter must be a valid ISO date format (YYYY-MM-DD) or left blank for all repositories.",
-                ex.getMessage(),
-                ex.toString()
+                "Bad Request",
+                "Invalid parameter values",
+                ex.getMessage()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }

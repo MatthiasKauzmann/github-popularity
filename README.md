@@ -1,21 +1,21 @@
 # GitHub rate limit
 
+- a user can pass number of pages and page size for GitHub Search API requests
+- page size can be between 1 and 100
+- but the number of pages depends on authentication
+
 ## Unauthenticated
 
 * GitHub allows only ten unauthenticated repository search API requests per minute
-* one such a request responds with at max 100 results (which corresponds to one page)
-* my GitHub client implementation will try to exhaust this limit and fetch as many results as possible.
-  For example, given a search for Java repositories with earliest created-at-date May 1st 2025 will result in
-  more than 1k results, my client will therefore fetch 10 pages to exhaust the limit (fetching a page costs one
-  request). Hence, the result will have
-  1k items
+* one such a request (one page) responds with at max 100 results 
+* as an unauthenticated user you can at max request 10 pages corresponding to 10x100=1000 results
 
 ## Authenticated
 
 * authenticated requests get 30 requests per minute. Therefore, I provided the opportunity to pass a personal GitHub
   access token at start-up. The token will then be available throughout the application runtime for authenticated
-  requests
-  providing more results.
+  requests providing more results.
+* as an authenticated user you can at max request 30 pages corresponding to 30x100=3000 results
 
 If you want to pass a token you can start the app with Maven like
 

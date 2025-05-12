@@ -3,6 +3,7 @@ package com.redcare.github.popularity.services;
 import com.redcare.github.popularity.client.GithubClient;
 import com.redcare.github.popularity.domain.PopularityScorer;
 import com.redcare.github.popularity.model.GithubRepository;
+import com.redcare.github.popularity.model.GithubSearchParams;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,14 +29,16 @@ class GithubRepositoryServiceTest {
     private PopularityScorer popularityScorer;
     @Mock
     private GithubRepository githubRepository;
+    @Mock
+    private GithubSearchParams searchParams;
 
     @InjectMocks
     private GithubRepositoryService service;
 
     @Test
     void shouldReturnEmptyList() {
-        when(githubClient.getRepositories(isNull(), isNull())).thenReturn(Collections.emptyList());
-        var result = service.getRepositoriesWithPopularityScore(null, null);
+        when(githubClient.getRepositories(any())).thenReturn(Collections.emptyList());
+        var result = service.getRepositoriesWithPopularityScore(searchParams);
         assertThat(result).isEmpty();
     }
 
@@ -45,10 +48,10 @@ class GithubRepositoryServiceTest {
         when(githubRepository.pushedAt()).thenReturn(Instant.now().minus(5, ChronoUnit.DAYS));
         when(githubRepository.starsCount()).thenReturn(100);
         when(githubRepository.forksCount()).thenReturn(50);
-        when(githubClient.getRepositories(isNull(), isNull())).thenReturn(List.of(githubRepository));
+        when(githubClient.getRepositories(any())).thenReturn(List.of(githubRepository));
         when(popularityScorer.calculateScore(anyInt(), anyInt(), eq(5))).thenReturn(1.0);
         // Act
-        var result = service.getRepositoriesWithPopularityScore(null, null);
+        var result = service.getRepositoriesWithPopularityScore(searchParams);
         // Assert
         assertThat(result).hasSize(1);
         assertThat(result.get(0).popularityScore()).isEqualTo(1.0);

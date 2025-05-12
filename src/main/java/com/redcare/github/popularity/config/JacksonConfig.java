@@ -9,6 +9,9 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class JacksonConfig {
 
+    /**
+     * Enables Jackson object mapper to map GitHub's incoming date type.
+     */
     @Bean
     @Primary
     public ObjectMapper objectMapper() {

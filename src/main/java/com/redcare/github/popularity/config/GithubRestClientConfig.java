@@ -14,6 +14,10 @@ public class GithubRestClientConfig {
         this.accessToken = accessToken;
     }
 
+    /**
+     * Configures a RestClient For GitHub requests.
+     * Will issue authenticated requests if an access token is provided at start-up.
+     */
     @Bean
     public RestClient restClient() {
         var builder = RestClient.builder()

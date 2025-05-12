@@ -5,7 +5,7 @@ import com.redcare.github.popularity.exception.client.GithubRateLimitException;
 import com.redcare.github.popularity.exception.client.GithubUnavailableException;
 import com.redcare.github.popularity.exception.client.GithubValidationException;
 import com.redcare.github.popularity.model.GithubRepository;
-import com.redcare.github.popularity.model.Language;
+import com.redcare.github.popularity.model.GithubSearchParams;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,47 +17,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class RateExhaustingGithubClient implements GithubClient {
-    private static final int PAGE_SIZE = 100;
-    private static final int MAX_PAGES_WITH_TOKEN = 30;
-    private static final int MAX_PAGES_WITHOUT_TOKEN = 10;
+public class RateAwareGithubClient implements GithubClient {
+    private static final int MAX_REQUESTS_WITH_TOKEN = 30;
+    private static final int MAX_REQUESTS_WITHOUT_TOKEN = 10;
 
     private final String accessToken;
     private final RestClient restClient;
 
-    public RateExhaustingGithubClient(@Value("${github.access-token:''}") String accessToken, RestClient restClient) {
+    public RateAwareGithubClient(@Value("${github.access-token:''}") String accessToken, RestClient restClient) {
         this.accessToken = accessToken;
         this.restClient = restClient;
     }
 
-    /**
-     * Fetches as many repositories as possible, respecting the number of available result pages
-     * and GitHub's API rate limits, without performing any waiting or retrying.
-     *
-     * @param earliestCreatedDate The earliest creation date for repositories in ISO format (YYYY-MM-DD), can be null or empty
-     * @param language            The programming language to filter repositories by, can be null or empty
-     * @return A list of GitHub repositories matching the specified criteria
-     */
     @Override
-    public List<GithubRepository> getRepositories(String earliestCreatedDate, Language language) {
-        var maxPages = accessToken != null && !accessToken.isEmpty() ? MAX_PAGES_WITH_TOKEN : MAX_PAGES_WITHOUT_TOKEN;
-        var firstResponse = fetchPage(earliestCreatedDate, language, 1);
+    public List<GithubRepository> getRepositories(GithubSearchParams searchParams) {
+        // determine the maximum number of pages based on whether an access token is provided
+        var cappedRequestCount = accessToken != null && !accessToken.isEmpty() ? MAX_REQUESTS_WITH_TOKEN : MAX_REQUESTS_WITHOUT_TOKEN;
+        // cap the requested pages to the maximum allowed
+        cappedRequestCount = Math.min(searchParams.maxPages(), cappedRequestCount);
+        var firstResponse = fetchPage(searchParams, 1);
         List<GithubRepository> result = new ArrayList<>(firstResponse.repositories());
-        // calculate how many more pages we need to fetch
-        var totalPages = (int) Math.ceil((double) firstResponse.repoCount() / PAGE_SIZE);
-        // limit to max allowed pages
-        var pagesToFetch = Math.min(totalPages, maxPages);
-        // fetch remaining pages (starting from page 2)
-        for (int page = 2; page <= pagesToFetch; page++) {
-            var response = fetchPage(earliestCreatedDate, language, page);
-            result.addAll(response.repositories());
+        // calculate how many more pages need to be fetched
+        var totalPages = (int) Math.ceil((double) firstResponse.repoCount() / searchParams.pageSize());
+        if (totalPages > 1) {
+            // bound the capped request count to the total pages
+            cappedRequestCount = Math.min(cappedRequestCount, totalPages);
+            for (int page = 2; page <= cappedRequestCount; page++) {
+                var response = fetchPage(searchParams, page);
+                result.addAll(response.repositories());
+            }
         }
         return result;
     }
 
-    private GithubSearchResponse fetchPage(String earliestCreatedDate, Language language, int page) {
+    private GithubSearchResponse fetchPage(GithubSearchParams searchParams, int page) {
         return restClient.get()
-                .uri(x -> getUri(earliestCreatedDate, language, page, x))
+                .uri(x -> getUri(searchParams, page, x))
                 .retrieve()
                 .onStatus(status -> status.equals(HttpStatus.NOT_MODIFIED),
                         (request, response) -> {
@@ -78,25 +73,25 @@ public class RateExhaustingGithubClient implements GithubClient {
                 .body(GithubSearchResponse.class);
     }
 
-    private URI getUri(String earliestCreatedDate, Language language, int page, UriBuilder uriBuilder) {
+    private URI getUri(GithubSearchParams searchParams, int page, UriBuilder uriBuilder) {
         return uriBuilder
                 .path("/search/repositories")
-                .queryParam("q", buildSearchQuery(earliestCreatedDate, language))
+                .queryParam("q", buildSearchQuery(searchParams))
                 .queryParam("page", page)
-                .queryParam("per_page", PAGE_SIZE)
+                .queryParam("per_page", searchParams.pageSize())
                 .build();
     }
 
-    private String buildSearchQuery(String earliestCreatedDate, Language language) {
+    private String buildSearchQuery(GithubSearchParams searchParams) {
         var queryBuilder = new StringBuilder();
-        if (earliestCreatedDate != null && !earliestCreatedDate.isEmpty()) {
-            queryBuilder.append("created:>=").append(earliestCreatedDate);
+        if (searchParams.earliestCreationDate() != null && !searchParams.earliestCreationDate().isEmpty()) {
+            queryBuilder.append("created:>=").append(searchParams.earliestCreationDate());
         }
-        if (language != null) {
+        if (searchParams.language() != null && !searchParams.language().isEmpty()) {
             if (!queryBuilder.isEmpty()) {
                 queryBuilder.append(" ");
             }
-            queryBuilder.append("language:").append(language);
+            queryBuilder.append("language:").append(searchParams.language());
         }
         return queryBuilder.toString();
     }

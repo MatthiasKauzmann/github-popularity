@@ -10,17 +10,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriBuilder;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A GitHub client implementation that is aware of GitHub API rate limits.
- * This client adjusts the number of result pages fetched based on whether an access token is provided.
- * With a token, more pages can be fetched due to higher rate limits.
- */
 @Service
-public class RateAwareGithubClient implements GithubClient {
+public class RateExhaustingGithubClient implements GithubClient {
     private static final int PAGE_SIZE = 100;
     private static final int MAX_PAGES_WITH_TOKEN = 30;
     private static final int MAX_PAGES_WITHOUT_TOKEN = 10;
@@ -28,14 +25,12 @@ public class RateAwareGithubClient implements GithubClient {
     private final String accessToken;
     private final RestClient restClient;
 
-    public RateAwareGithubClient(@Value("${github.access-token:''}") String accessToken, RestClient restClient) {
+    public RateExhaustingGithubClient(@Value("${github.access-token:''}") String accessToken, RestClient restClient) {
         this.accessToken = accessToken;
         this.restClient = restClient;
     }
 
     /**
-     * Retrieves GitHub repositories based on creation date and programming language.
-     * The number of results is limited by GitHub's pagination and rate limits.
      * Fetches as many repositories as possible, respecting the number of available result pages
      * and GitHub's API rate limits, without performing any waiting or retrying.
      *
@@ -62,12 +57,7 @@ public class RateAwareGithubClient implements GithubClient {
 
     private GithubSearchResponse fetchPage(String earliestCreatedDate, Language language, int page) {
         return restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/search/repositories")
-                        .queryParam("q", buildSearchQuery(earliestCreatedDate, language))
-                        .queryParam("page", page)
-                        .queryParam("per_page", PAGE_SIZE)
-                        .build())
+                .uri(x -> getUri(earliestCreatedDate, language, page, x))
                 .retrieve()
                 .onStatus(status -> status.equals(HttpStatus.NOT_MODIFIED),
                         (request, response) -> {
@@ -86,6 +76,15 @@ public class RateAwareGithubClient implements GithubClient {
                             throw new GithubUnavailableException("GitHub API service is currently unavailable");
                         })
                 .body(GithubSearchResponse.class);
+    }
+
+    private URI getUri(String earliestCreatedDate, Language language, int page, UriBuilder uriBuilder) {
+        return uriBuilder
+                .path("/search/repositories")
+                .queryParam("q", buildSearchQuery(earliestCreatedDate, language))
+                .queryParam("page", page)
+                .queryParam("per_page", PAGE_SIZE)
+                .build();
     }
 
     private String buildSearchQuery(String earliestCreatedDate, Language language) {

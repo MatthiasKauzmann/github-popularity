@@ -1,7 +1,7 @@
 package com.redcare.github.popularity.controller;
 
-import com.redcare.github.popularity.model.GithubRepositoryDto;
 import com.redcare.github.popularity.model.Language;
+import com.redcare.github.popularity.model.ScoredGithubRepository;
 import com.redcare.github.popularity.services.GithubRepositoryService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,7 +35,7 @@ public class GithubPopularityController {
      * @return ResponseEntity containing a list of GitHub repositories with their popularity scores
      */
     @GetMapping("/repositories")
-    public ResponseEntity<List<GithubRepositoryDto>> getRepositoriesWithPopularityScore(@RequestParam(required = false) String earliestCreatedAt, @Parameter(
+    public ResponseEntity<List<ScoredGithubRepository>> getRepositoriesWithPopularityScore(@RequestParam(required = false) String earliestCreatedAt, @Parameter(
             description = "Programming language to filter repositories by",
             schema = @Schema(implementation = Language.class, type = "string",
                     allowableValues = {"JAVA", "JAVASCRIPT", "PYTHON", "TYPESCRIPT", "C", "CPP",

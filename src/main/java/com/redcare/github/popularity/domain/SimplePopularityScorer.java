@@ -2,12 +2,6 @@ package com.redcare.github.popularity.domain;
 
 import org.springframework.stereotype.Service;
 
-/**
- * A simple popularity scorer that uses weighted scores for stars, forks, and days since
- * update. A higher score indicates a higher popularity.
- * The scores are normalized to the range [0, 5] and rounded to two decimals places.
- * Star and fork counts as well as days since update are capped given GitHub statistics and an opinionated approach.
- */
 @Service
 public class SimplePopularityScorer implements PopularityScorer {
     // WEIGHTS

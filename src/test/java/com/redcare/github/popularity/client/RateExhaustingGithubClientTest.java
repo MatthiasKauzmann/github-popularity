@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class RateAwareGithubClientTest {
+class RateExhaustingGithubClientTest {
 
     @Mock
     private RestClient restClient;
@@ -38,7 +38,7 @@ class RateAwareGithubClientTest {
     @Mock
     private GithubRepository repository;
 
-    private RateAwareGithubClient client;
+    private RateExhaustingGithubClient client;
 
     static Stream<TestCase> testCases() {
         return Stream.of(
@@ -56,7 +56,7 @@ class RateAwareGithubClientTest {
         when(header.uri(any(Function.class))).thenReturn(header);
         when(header.retrieve()).thenReturn(responseSpec);
         // arrange
-        client = new RateAwareGithubClient("", restClient);
+        client = new RateExhaustingGithubClient("", restClient);
     }
 
     @MethodSource("testCases")
@@ -70,7 +70,7 @@ class RateAwareGithubClientTest {
         when(response.repoCount()).thenReturn(testCase.repoCount());
         when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         // arrange
-        var client = new RateAwareGithubClient(testCase.accessToken(), restClient);
+        var client = new RateExhaustingGithubClient(testCase.accessToken(), restClient);
         // act
         client.getRepositories("", Language.ELIXIR);
         verify(response, times(testCase.fetchTimesExpected())).repositories();

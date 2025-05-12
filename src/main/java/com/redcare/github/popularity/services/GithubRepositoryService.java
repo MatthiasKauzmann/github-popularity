@@ -2,7 +2,7 @@ package com.redcare.github.popularity.services;
 
 import com.redcare.github.popularity.client.GithubClient;
 import com.redcare.github.popularity.domain.PopularityScorer;
-import com.redcare.github.popularity.model.GithubRepositoryDto;
+import com.redcare.github.popularity.model.ScoredGithubRepository;
 import com.redcare.github.popularity.model.Language;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,15 +24,14 @@ public class GithubRepositoryService {
      * The popularity score is calculated based on the repository's stars count, forks count,
      * and the number of days since the last update.
      *
-     * @param earliestCreatedAt The earliest creation date for repositories to include in the results,
-     *                          formatted as a string (e.g., "2023-01-01")
+     * @param earliestCreatedAt The earliest creation date for repositories to include in the results
      * @param language          The programming language to filter repositories by
      * @return A list of GitHub repository DTOs with calculated popularity scores
      */
-    public List<GithubRepositoryDto> getRepositoriesWithPopularityScore(String earliestCreatedAt, Language language) {
+    public List<ScoredGithubRepository> getRepositoriesWithPopularityScore(String earliestCreatedAt, Language language) {
         var repositories = githubClient.getRepositories(earliestCreatedAt, language);
         return repositories.stream()
-                .map(x -> new GithubRepositoryDto(x, popularityScorer.calculateScore(x.starsCount(), x.forksCount(), getDaysSinceUpdate(x.pushedAt()))))
+                .map(x -> new ScoredGithubRepository(x, popularityScorer.calculateScore(x.starsCount(), x.forksCount(), getDaysSinceUpdate(x.pushedAt()))))
                 .toList();
     }
 

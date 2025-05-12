@@ -7,11 +7,12 @@ import java.util.List;
 
 public interface GithubClient {
     /**
-     * Gets GitHub repositories based on the provided criteria.
-     *
-     * @param earliestCreatedDate the earliest created date
-     * @param language            the language
-     * @return a list of GitHub repositories
+     * Retrieves GitHub repositories based on creation date and programming language.
+     * The number of results will be limited by GitHub's pagination and rate limits.
+     * *
+     * @param earliestCreatedDate The earliest creation date for repositories in ISO format (YYYY-MM-DD), can be null or empty
+     * @param language            The programming language to filter repositories by, can be null or empty
+     * @return A list of GitHub repositories matching the specified criteria
      */
     List<GithubRepository> getRepositories(String earliestCreatedDate, Language language);
 }

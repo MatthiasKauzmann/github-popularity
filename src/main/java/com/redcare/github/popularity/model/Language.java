@@ -2,6 +2,9 @@ package com.redcare.github.popularity.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * Supported programming languages for repository filtering
+ */
 @Schema(description = "Programming languages supported for repository filtering")
 public enum Language {
     JAVA,

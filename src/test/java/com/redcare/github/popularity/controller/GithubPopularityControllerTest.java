@@ -1,6 +1,6 @@
 package com.redcare.github.popularity.controller;
 
-import com.redcare.github.popularity.model.GithubRepositoryDto;
+import com.redcare.github.popularity.model.ScoredGithubRepository;
 import com.redcare.github.popularity.model.Language;
 import com.redcare.github.popularity.services.GithubRepositoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +28,7 @@ class GithubPopularityControllerTest {
     @MockitoBean
     private GithubRepositoryService service;
     @Mock
-    private GithubRepositoryDto repoDto;
+    private ScoredGithubRepository repoDto;
 
     @BeforeEach
     void setUp() {

@@ -8,5 +8,5 @@ public record GithubRepository(long id, @JsonProperty("full_name") String name, 
                                @JsonProperty("created_at") Instant createdAt,
                                @JsonProperty("pushed_at") Instant pushedAt,
                                @JsonProperty("stargazers_count") int starsCount,
-                               @JsonProperty("forks_count") int forksCount) {
+                               @JsonProperty("forks_count") int forksCount, String language) {
 }

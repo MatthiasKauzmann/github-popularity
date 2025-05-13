@@ -29,6 +29,14 @@ public class RateAwareGithubClient implements GithubClient {
         this.restClient = restClient;
     }
 
+    /**
+     * Retrieves GitHub repositories based on creation date and programming language.
+     * The number of results will be limited by GitHub's pagination and rate limits.
+     *
+     * @param searchParams The search parameters containing criteria such as creation date range,
+     *                     programming language and pagination options
+     * @return A list of GitHub repositories matching the specified criteria
+     */
     @Override
     public List<GithubRepository> getRepositories(GithubSearchParams searchParams) {
         // determine the maximum number of pages based on whether an access token is provided

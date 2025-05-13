@@ -1,0 +1,47 @@
+@startuml GitHub Repository Popularity Components
+!pragma layout smetana
+
+package "github-popularity" {
+  package "API Layer" {
+    [GithubPopularityController] as controller
+  }
+
+  package "Service Layer" {
+    [GithubRepositoryService] as service
+  }
+
+  package "Domain Layer" {
+    interface "PopularityScorer" as scorerInterface
+    [SimplePopularityScorer] as scorer
+  }
+
+  package "Client Layer" {
+    interface "GithubClient" as clientInterface
+    [RateAwareGithubClient] as client
+  }
+
+  package "Configuration" {
+    [GithubRestClientConfig] as clientConfig
+  }
+}
+
+cloud "GitHub API" as githubApi
+
+' Controller relationships
+controller --> service : uses
+
+' Service relationships
+service --> clientInterface : uses
+service --> scorerInterface : uses
+
+' Implementation relationships
+scorer ..|> scorerInterface : implements
+client ..|> clientInterface : implements
+
+' Client relationships
+client --> githubApi : calls
+
+' Configuration relationships
+clientConfig --> client : configures
+
+@enduml

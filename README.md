@@ -32,3 +32,7 @@ java -jar your-application.jar --github.access-token=your_github_token_here
 # Swagger
 
 You can access the Swagger-UI for API docs at `localhost:8080/swagger-ui/index.html`
+
+# PlantUML
+
+You'll find a component and sequence diagram in `./plantuml`

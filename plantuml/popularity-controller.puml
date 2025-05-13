@@ -1,0 +1,43 @@
+@startuml GitHub Repository Popularity Sequence
+!pragma layout smetana
+actor Client
+participant "GithubPopularityController" as Controller
+participant "GithubRepositoryService" as Service
+participant "PopularityScorer" as Scorer
+participant "GithubClient" as GithubClient
+participant "GitHub API" as GitHubAPI
+
+Client -> Controller: GET /api/v1/repositories\n(with GithubSearchParams)
+activate Controller
+
+Controller -> Service: getRepositoriesWithPopularityScore(searchParams)
+activate Service
+
+Service -> GithubClient: getRepositories(searchParams)
+activate GithubClient
+
+GithubClient -> GitHubAPI: HTTP Request (with/without token)
+activate GitHubAPI
+note right: Rate limits apply:\n- 10 req/min (unauthenticated)\n- 30 req/min (authenticated)
+
+GitHubAPI --> GithubClient: Repository data
+deactivate GitHubAPI
+
+GithubClient --> Service: List<GithubRepository>
+deactivate GithubClient
+
+loop for each repository
+    Service -> Scorer: calculatePopularityScore(repository)
+    activate Scorer
+    Scorer --> Service: popularity score
+    deactivate Scorer
+    Service -> Service: create ScoredGithubRepository
+end
+
+Service --> Controller: List<ScoredGithubRepository>
+deactivate Service
+
+Controller --> Client: HTTP 200 OK with repositories and scores
+deactivate Controller
+
+@enduml

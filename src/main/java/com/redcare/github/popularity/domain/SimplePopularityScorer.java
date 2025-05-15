@@ -3,7 +3,7 @@ package com.redcare.github.popularity.domain;
 import org.springframework.stereotype.Service;
 
 /**
- * See https://github.com/EvanLi/Github-Ranking for current max and mean scores.
+ * See <a href="https://github.com/EvanLi/Github-Ranking">...</a> for current max and mean scores.
  */
 @Service
 public class SimplePopularityScorer implements PopularityScorer {
